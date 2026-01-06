@@ -1,1 +1,6 @@
-from src.database.models import User, PaymentsHistory, SessionLocal
+from src.database.models import (
+    SessionLocal,
+    User,
+    PaymentsHistory,
+    FriendsList
+)

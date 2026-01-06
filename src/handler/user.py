@@ -1,5 +1,6 @@
-from src.database import User, PaymentsHistory, SessionLocal
+from src.database import User, PaymentsHistory, FriendsList, SessionLocal
 from src.schema.payment import PaymentSchema
+from src.schema.user import FriendRequestSchema
 
 
 class UserHandler:
@@ -77,3 +78,30 @@ class UserHandler:
         history = query.order_by(PaymentsHistory.id.desc()).limit(limit).offset(offset).all()
         db.close()
         return history
+    
+    def add_friend(self, user_id: int, friend_id: int):
+        db = SessionLocal()
+
+        existing_friendship = db.query(FriendsList).filter(
+            FriendsList.user_id == user_id,
+            FriendsList.friend_id == friend_id
+        ).first()
+        if existing_friendship:
+            db.close()
+            raise Exception("Friendship already exists")
+
+        new_friendship = FriendsList(user_id=user_id, friend_id=friend_id)
+        db.add(new_friendship)
+        try:
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            raise Exception(f"Error adding friend: {e}")
+        db.close()
+        return True
+    
+    def get_friends(self, user_id: int, limit: int = 10, offset: int = 0):
+        db = SessionLocal()
+        friends = db.query(FriendsList).filter(FriendsList.user_id == user_id).limit(limit).offset(offset).all()
+        db.close()
+        return friends

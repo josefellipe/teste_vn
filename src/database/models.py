@@ -24,6 +24,13 @@ class PaymentsHistory(Base):
     method = Column(String, nullable=False)
     reason = Column(String, nullable=True)
 
+class FriendsList(Base):
+    __tablename__ = "friends_list"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False)
+    friend_id = Column(Integer, nullable=False)
+
 uri = "sqlite:///./test.db"
 
 engine = create_engine(uri, connect_args={"check_same_thread": False})
