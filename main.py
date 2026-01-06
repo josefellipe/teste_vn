@@ -5,7 +5,6 @@ import uvicorn
 
 app = FastAPI()
 
-
 app.include_router(user_route)
 app.include_router(payment_route)
 

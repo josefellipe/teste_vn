@@ -3,9 +3,9 @@ from src.schema.payment import PaymentSchema
 
 
 class UserHandler:
-    def create_user(self, username: str):
+    def create_user(self, name: str, username: str) -> User:
         db = SessionLocal()
-        new_user = User(username=username)
+        new_user = User(name=name, username=username)
         db.add(new_user)
         try:
             db.commit()
@@ -44,7 +44,8 @@ class UserHandler:
             sender_id=sender.id,
             recipient_id=recipient.id,
             amount=data.amount,
-            method=payment_method
+            method=payment_method,
+            reason=data.reason
         )
         db.add(payment_record)
 
