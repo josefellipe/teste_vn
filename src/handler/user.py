@@ -1,9 +1,12 @@
-from src.database import User, session
+from src.database import User, SessionLocal
 
 class UserHandler:
     def create_user(self, username: str):
+        db = SessionLocal()
         new_user = User(username=username)
-        new_user.save()
-        new_user.commit()
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        db.close()
         return new_user
     
