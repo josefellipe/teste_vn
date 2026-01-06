@@ -14,7 +14,6 @@ class User(Base):
     balance = Column(Integer, default=0)
 
 
-
 uri = "sqlite:///./test.db"
 
 engine = create_engine(uri, connect_args={"check_same_thread": False})
