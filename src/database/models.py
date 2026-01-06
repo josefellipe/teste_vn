@@ -13,6 +13,14 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     balance = Column(Integer, default=0)
 
+class PaymentsHistory(Base):
+    __tablename__ = "payments_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    sender_id = Column(Integer, nullable=False)
+    recipient_id = Column(Integer, nullable=False)
+    amount = Column(Integer, nullable=False)
+    method = Column(String, nullable=False)
 
 uri = "sqlite:///./test.db"
 

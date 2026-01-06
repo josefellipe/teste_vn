@@ -21,3 +21,7 @@ class PaymentService:
             return ValueError("Sender not found")
         
         return sender.balance >= amount
+
+    def get_payment_history(self, limit: int = 10, offset: int = 0, sender_id: int = 0, recipient_id: int = 0, method: str = None):
+        history = user_handler.get_payment_history(limit, offset, sender_id, recipient_id, method)
+        return history

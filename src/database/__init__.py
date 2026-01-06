@@ -1,1 +1,1 @@
-from src.database.models import User, SessionLocal
+from src.database.models import User, PaymentsHistory, SessionLocal

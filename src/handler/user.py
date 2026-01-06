@@ -1,4 +1,4 @@
-from src.database import User, SessionLocal
+from src.database import User, PaymentsHistory, SessionLocal
 from src.schema.payment import PaymentSchema
 
 
@@ -40,6 +40,14 @@ class UserHandler:
 
         recipient.balance += data.amount
 
+        payment_record = PaymentsHistory(
+            sender_id=sender.id,
+            recipient_id=recipient.id,
+            amount=data.amount,
+            method=payment_method
+        )
+        db.add(payment_record)
+
         try:
             db.commit()
         except Exception as e:
@@ -53,3 +61,18 @@ class UserHandler:
             "recipient": recipient.username,
             "amount": data.amount
         }
+    
+    def get_payment_history(
+            self, limit: int = 10, offset: int = 0, sender_id: int = 0, recipient_id: int = 0, method: str = None
+    ):
+        db = SessionLocal()
+        query = db.query(PaymentsHistory)
+        if sender_id:
+            query = query.filter(PaymentsHistory.sender_id == sender_id)
+        if recipient_id:
+            query = query.filter(PaymentsHistory.recipient_id == recipient_id)
+        if method:
+            query = query.filter(PaymentsHistory.method == method)
+        history = query.order_by(PaymentsHistory.id.desc()).limit(limit).offset(offset).all()
+        db.close()
+        return history
