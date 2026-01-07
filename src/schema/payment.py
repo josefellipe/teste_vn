@@ -7,9 +7,6 @@ class PaymentSchema(BaseModel):
     reason: str
 
 
-    class Config:
-        orm_mode = True
-
 class PaymentSchemaResponse(BaseModel):
     status: str
     reason: str

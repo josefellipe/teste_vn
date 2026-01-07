@@ -34,10 +34,19 @@ class FriendsList(Base):
     friend_id = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
-uri = "sqlite:///./test.db"
+uri = "sqlite:///./minivenmo.db"
 
 engine = create_engine(uri, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base.metadata.create_all(bind=engine)
+
+def create_tables():
+    Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 

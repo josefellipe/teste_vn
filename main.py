@@ -1,7 +1,9 @@
 from fastapi import APIRouter, FastAPI
 from src.route import user_route, payment_route, activis_route
+from src.database.models import create_tables
 import uvicorn
 
+create_tables()
 
 app = FastAPI()
 

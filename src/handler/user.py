@@ -1,12 +1,12 @@
-from src.database import User, PaymentsHistory, FriendsList, SessionLocal
+from src.database import User, PaymentsHistory, FriendsList
+from sqlalchemy.orm import Session
 from src.schema.payment import PaymentSchema
 from src.schema.user import FriendRequestSchema
 from src.exceptions import UserNotFoundException, FriendshipAlreadyExistsException
 
 
 class UserHandler:
-    def create_user(self, name: str, username: str) -> User:
-        db = SessionLocal()
+    def create_user(self, db: Session, name: str, username: str) -> User:
         new_user = User(name=name, username=username)
         db.add(new_user)
         try:
@@ -15,23 +15,17 @@ class UserHandler:
             db.rollback()
             raise Exception(f"Error creating user: {e}")
         db.refresh(new_user)
-        db.close()
         return new_user
     
-    def get_user(self, username: str):
-        db = SessionLocal()
+    def get_user(self, db: Session, username: str) -> User:
         user = db.query(User).filter(User.username == username).first()
-        db.close()
         return user
     
-    def get_user_by_id(self, user_id: int):
-        db = SessionLocal()
+    def get_user_by_id(self, db: Session, user_id: int) -> User:
         user = db.query(User).filter(User.id == user_id).first()
-        db.close()
         return user
     
-    def create_payment(self, data: PaymentSchema, payment_method: str):
-        db = SessionLocal()
+    def create_payment(self, db: Session, data: PaymentSchema, payment_method: str):
         sender = db.query(User).filter(User.id == data.sender_id).first()
         recipient = db.query(User).filter(User.id == data.recipient_id).first()
         
@@ -66,9 +60,8 @@ class UserHandler:
         }
     
     def get_payment_history(
-            self, limit: int = 10, offset: int = 0, sender_id: int = 0, recipient_id: int = 0, method: str = None
+            self, db: Session, limit: int = 10, offset: int = 0, sender_id: int = 0, recipient_id: int = 0, method: str = None
     ):
-        db = SessionLocal()
         query = db.query(PaymentsHistory)
         if sender_id:
             query = query.filter(PaymentsHistory.sender_id == sender_id)
@@ -77,18 +70,15 @@ class UserHandler:
         if method:
             query = query.filter(PaymentsHistory.method == method)
         history = query.order_by(PaymentsHistory.id.desc()).limit(limit).offset(offset).all()
-        db.close()
         return history
     
-    def add_friend(self, user_id: int, friend_id: int):
-        db = SessionLocal()
+    def add_friend(self, db: Session, user_id: int, friend_id: int):
 
         existing_friendship = db.query(FriendsList).filter(
             FriendsList.user_id == user_id,
             FriendsList.friend_id == friend_id
         ).first()
         if existing_friendship:
-            db.close()
             raise FriendshipAlreadyExistsException("Friendship already exists")
 
         new_friendship = FriendsList(user_id=user_id, friend_id=friend_id)
@@ -98,21 +88,16 @@ class UserHandler:
         except Exception as e:
             db.rollback()
             raise Exception(f"Error adding friend: {e}")
-        db.close()
         return True
     
-    def get_friends(self, user_id: int, limit: int = 10, offset: int = 0):
-        db = SessionLocal()
+    def get_friends(self, db: Session, user_id: int, limit: int = 10, offset: int = 0):
         friends = db.query(FriendsList).filter(FriendsList.user_id == user_id).limit(limit).offset(offset).all()
-        db.close()
         return friends
     
-    def get_user_activity_feed(self, user_id: int):
-        db = SessionLocal()
+    def get_user_activity_feed(self, db: Session, user_id: int):
 
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            db.close()
             raise UserNotFoundException(f"User with id {user_id} not found")
         
         payments = db.query(PaymentsHistory).filter(
@@ -152,8 +137,6 @@ class UserHandler:
                     'user2': user2.name
                 }
             })
-        
-        db.close()
         
         activities.sort(key=lambda x: x['created_at'], reverse=True)
         
