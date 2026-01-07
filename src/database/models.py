@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime, timezone
 
 Base = declarative_base()
 
@@ -23,6 +24,7 @@ class PaymentsHistory(Base):
     amount = Column(Integer, nullable=False)
     method = Column(String, nullable=False)
     reason = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
 class FriendsList(Base):
     __tablename__ = "friends_list"
@@ -30,6 +32,7 @@ class FriendsList(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False)
     friend_id = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
 uri = "sqlite:///./test.db"
 

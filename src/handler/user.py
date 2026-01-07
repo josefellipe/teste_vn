@@ -1,6 +1,7 @@
 from src.database import User, PaymentsHistory, FriendsList, SessionLocal
 from src.schema.payment import PaymentSchema
 from src.schema.user import FriendRequestSchema
+from src.exceptions import UserNotFoundException, FriendshipAlreadyExistsException
 
 
 class UserHandler:
@@ -88,7 +89,7 @@ class UserHandler:
         ).first()
         if existing_friendship:
             db.close()
-            raise Exception("Friendship already exists")
+            raise FriendshipAlreadyExistsException("Friendship already exists")
 
         new_friendship = FriendsList(user_id=user_id, friend_id=friend_id)
         db.add(new_friendship)
@@ -105,3 +106,55 @@ class UserHandler:
         friends = db.query(FriendsList).filter(FriendsList.user_id == user_id).limit(limit).offset(offset).all()
         db.close()
         return friends
+    
+    def get_user_activity_feed(self, user_id: int):
+        db = SessionLocal()
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            db.close()
+            raise UserNotFoundException(f"User with id {user_id} not found")
+        
+        payments = db.query(PaymentsHistory).filter(
+            (PaymentsHistory.sender_id == user_id) | (PaymentsHistory.recipient_id == user_id)
+        ).all()
+        
+        friendships = db.query(FriendsList).filter(
+            (FriendsList.user_id == user_id) | (FriendsList.friend_id == user_id)
+        ).all()
+        
+        activities = []
+        
+        for payment in payments:
+            sender = db.query(User).filter(User.id == payment.sender_id).first()
+            recipient = db.query(User).filter(User.id == payment.recipient_id).first()
+            
+            activities.append({
+                'type': 'payment',
+                'created_at': payment.created_at,
+                'data': {
+                    'sender': sender.name,
+                    'recipient': recipient.name,
+                    'amount': payment.amount,
+                    'reason': payment.reason
+                }
+            })
+        
+        for friendship in friendships:
+            user1 = db.query(User).filter(User.id == friendship.user_id).first()
+            user2 = db.query(User).filter(User.id == friendship.friend_id).first()
+            
+            activities.append({
+                'type': 'friendship',
+                'created_at': friendship.created_at,
+                'data': {
+                    'user1': user1.name,
+                    'user2': user2.name
+                }
+            })
+        
+        db.close()
+        
+        activities.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return activities
